@@ -14,6 +14,12 @@ export function activate(context: vscode.ExtensionContext) {
         cmd.newFile
     );
     context.subscriptions.push(disposable);
+
+    disposable = vscode.commands.registerCommand(
+        "tempest.editTemplate",
+        cmd.editTemplate
+    );
+    context.subscriptions.push(disposable);
 }
 
 // this method is called when your extension is deactivated

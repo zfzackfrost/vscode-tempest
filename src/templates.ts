@@ -9,12 +9,23 @@ import _ from "lodash";
 import dayjs from "dayjs";
 import LocalizedFormat from "dayjs/plugin/localizedFormat";
 
-export interface TemplateInfo {
-    path: string;
+export interface LoadedTemplateInfo {
     label: string;
     filename: string;
     code: string;
     defaultArguments: { [key: string]: any };
+}
+export interface TemplateInfo extends LoadedTemplateInfo {
+    path: string;
+}
+
+function isLoadedTemplateInfo(data: any): data is LoadedTemplateInfo {
+    return (
+        (data as LoadedTemplateInfo).code !== undefined &&
+        (data as LoadedTemplateInfo).defaultArguments !== undefined &&
+        (data as LoadedTemplateInfo).filename !== undefined &&
+        (data as LoadedTemplateInfo).label !== undefined
+    );
 }
 
 const loadTemplateInfo = (path: string): TemplateInfo | undefined => {
@@ -25,15 +36,12 @@ const loadTemplateInfo = (path: string): TemplateInfo | undefined => {
         console.log(`Tempest: Error loading YAML file: \`${e}\``);
         return;
     }
-    if (_.isString(doc) || _.isUndefined(doc)) {
+    if (!isLoadedTemplateInfo(doc)) {
         return;
     }
     return {
         path: path,
-        label: doc.name,
-        filename: doc.filename,
-        code: doc.template,
-        defaultArguments: doc.defaultArguments,
+        ...doc,
     };
 };
 
@@ -42,21 +50,29 @@ export const getAllTemplates = (): TemplateInfo[] => {
     if (!dir) {
         return [];
     }
-    const result = fs
-        .readdirSync(dir)
-        .map((fileOrDir) => path.join(dir, fileOrDir))
-        .filter((p) => {
-            const isFile = fs.statSync(p).isFile();
-            const extOk =
-                path.extname(p) === ".yml" || path.extname(p) === ".yaml";
-            return isFile && extOk;
-        })
-        .map((p) => loadTemplateInfo(p))
-        .filter((v) => !_.isUndefined(v));
+    const result = _.filter(
+        _.map(
+            _.filter(
+                _.map(fs.readdirSync(dir), (fileOrDir) =>
+                    path.join(dir, fileOrDir)
+                ),
+                (p) => {
+                    const isFile = fs.statSync(p).isFile();
+                    const extOk =
+                        path.extname(p) === ".yml" ||
+                        path.extname(p) === ".yaml";
+                    return isFile && extOk;
+                }
+            ),
+            loadTemplateInfo
+        ),
+        _.negate(_.isUndefined)
+    );
     return result as any;
 };
 
 dayjs.extend(LocalizedFormat);
+
 const templateImports = {
     dayjs,
     _,
