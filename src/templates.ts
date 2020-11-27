@@ -11,6 +11,7 @@ import LocalizedFormat from "dayjs/plugin/localizedFormat";
 
 export interface LoadedTemplateInfo {
     label: string;
+    description?: string;
     filename: string;
     code: string;
     defaultArguments: { [key: string]: any };

@@ -9,10 +9,13 @@
   "categories": [
     "Other"
   ],
+  "preview": true,
   "keywords": [
     "template",
     "file",
-    "create"
+    "create",
+    "folder",
+    "directory"
   ],
   "activationEvents": [
     "onCommand:tempest.newFile",
